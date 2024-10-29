@@ -1,0 +1,29 @@
+# C++ 빌드 파일 무시
+*.o
+*.out
+*.exe
+
+# 빌드 및 캐시 폴더 무시
+/build/
+bin/
+obj/
+x64/
+
+# 특정 프로젝트의 Debug 빌드 파일 무시
+PROJ2/x64/Debug/*
+
+# IDE 관련 파일 무시
+.vscode/
+.idea/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln
+
+# 시스템 파일 무시
+.DS_Store
+Thumbs.db
+
+# Visual Studio 관련 특정 파일 무시
+.vs/PROJ2/FileContentIndex/**
