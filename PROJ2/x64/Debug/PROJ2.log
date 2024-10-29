@@ -1,0 +1,4 @@
+﻿  inf_int.cpp
+C:\Users\cartc\source\repos\PROJ2\PROJ2\inf_int.cpp(146): error C4716: 'operator-': 값을 반환해야 합니다.
+C:\Users\cartc\source\repos\PROJ2\PROJ2\inf_int.cpp(106): error C4716: 'operator>': 값을 반환해야 합니다.
+C:\Users\cartc\source\repos\PROJ2\PROJ2\inf_int.cpp(151): error C4716: 'operator*': 값을 반환해야 합니다.
