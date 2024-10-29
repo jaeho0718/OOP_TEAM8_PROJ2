@@ -120,12 +120,112 @@ inf_int operator+(const inf_int& a, const inf_int& b)
 
 inf_int operator-(const inf_int& a, const inf_int& b)
 {
-	// to be filled
+	bool has_same_sign = a.thesign == b.thesign;
+
+	//연산을 위한 부호없는 값 생성
+	inf_int subtrahend = b.digits; // 빼질 값
+	inf_int minuend = a.digits; // 뺄 값
+	bool thesign = false;
+	string digits;
+
+	if (has_same_sign)
+	{
+		// (+)-(+) or (-)-(-)인 경우 계산
+
+		if (subtrahend==minuend) return inf_int(0); // 절댓값이 같을 경우 결과가 0
+		
+		thesign = a.thesign;
+
+		// 뺄값이 뺴는값 보다 클때, minuend와 subtrahend 바꿈
+		if (subtrahend<minuend)
+		{
+			thesign = !a.thesign;
+			subtrahend = a.digits;
+			minuend = b.digits;
+		}
+
+		bool carry = false;
+		int s_length = subtrahend.digits.length();
+		int m_length = minuend.digits.length();
+		int s_digit, m_digit, temp;
+		for (int i = 0; i < s_length; i++)
+		{
+			s_digit = subtrahend.digits.at(i)-'0';
+			if (carry) s_digit -= 1;
+
+			if (i < m_length)
+			{
+				m_digit = minuend.digits.at(i)-'0';
+				temp = s_digit-m_digit;
+			}
+			else temp = s_digit;
+
+			carry = temp < 0;
+			if (carry)
+				temp += 10;
+
+			digits.push_back(temp+'0');
+		}
+	}
+	else
+	{
+		// 다른 부호를 가졋을때는, 절댓값을 더한뒤 부호를 생성합니다.
+		digits = (subtrahend+minuend).digits;
+		if (b.thesign) thesign=false; // (-)-(+)인 경우
+		else thesign=true; // (+)-(-)인 경우
+	}
+	
+	inf_int result = digits;
+	result.thesign = thesign;
+	return result;
 }
 
 inf_int operator*(const inf_int& a, const inf_int& b)
 {
 	// to be filled
+}
+
+inf_int operator/(const inf_int& a, const inf_int& b)
+{
+	string dividend_digits = a.digits;
+	inf_int divisor = b.digits;
+	int divisor_length = divisor.digits.length();
+
+	const inf_int zero;
+	assert(divisor!=zero);
+
+	string quotient_digits;
+	inf_int temp;
+	for (int i = dividend_digits.length()-1; i>=divisor_length-1; i--)
+	{
+		temp = inf_int(dividend_digits.substr(i-divisor_length+1, divisor_length));
+		bool is_dividable = temp-divisor > zero || temp-divisor == zero;
+		if (is_dividable)
+		{
+			int q = 1;
+			for (q = 1; q < 10; q++)
+			{
+				if (temp < inf_int(q)*divisor)
+				{
+					q -= 1;
+					break;
+				}
+			}
+			quotient_digits.push_back(q+'0');
+		}
+		else
+		{
+			quotient_digits.push_back('0');
+		} // 좀더 생각...
+	}
+
+	inf_int quotient;
+	quotient.digits=quotient_digits;
+	// 부호 결정
+	if (a.thesign==b.thesign) quotient.thesign=true;
+	else quotient.thesign=false;
+
+	return quotient;
 }
 
 
