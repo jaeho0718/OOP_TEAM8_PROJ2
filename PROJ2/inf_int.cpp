@@ -187,44 +187,37 @@ inf_int operator*(const inf_int& a, const inf_int& b)
 
 inf_int operator/(const inf_int& a, const inf_int& b)
 {
-	string dividend_digits = a.digits;
-	inf_int divisor = b.digits;
-	int divisor_length = divisor.digits.length();
-
 	const inf_int zero;
-	assert(divisor!=zero);
+	inf_int quotient;
+	inf_int reminder;
+	inf_int divisor = b.digits;
 
-	string quotient_digits;
-	inf_int temp;
-	for (int i = dividend_digits.length()-1; i>=divisor_length-1; i--)
+	assert(divisor!=zero); //0으로 나누는 경우 에러
+	
+	if (a==zero) return zero; // 0을 나누는 경우 0을 반환
+	if (inf_int(a.digits) < inf_int(b.digits)) return zero; // 나누는값이 더 클 경우 몫은 0이므로 몫 반환
+	
+	reminder.digits = "";
+	for (int i = a.digits.length()-1; i>=0; i--)
 	{
-		temp = inf_int(dividend_digits.substr(i-divisor_length+1, divisor_length));
-		bool is_dividable = temp-divisor > zero || temp-divisor == zero;
-		if (is_dividable)
+		reminder.digits.insert(reminder.digits.begin(), a.digits.at(i)); // 나머지에 추가
+		if (reminder<divisor)
 		{
-			int q = 1;
-			for (q = 1; q < 10; q++)
-			{
-				if (temp < inf_int(q)*divisor)
-				{
-					q -= 1;
-					break;
-				}
-			}
-			quotient_digits.push_back(q+'0');
+			quotient.digits.insert(quotient.digits.begin(), '0');
 		}
 		else
 		{
-			quotient_digits.push_back('0');
-		} // 좀더 생각...
+			int q = 0;
+			while (reminder > divisor || reminder==divisor)
+			{
+				reminder = reminder-divisor;
+				q++;
+			}
+			quotient.digits.insert(quotient.digits.begin(), q+'0');
+		}
 	}
 
-	inf_int quotient;
-	quotient.digits=quotient_digits;
-	// 부호 결정
-	if (a.thesign==b.thesign) quotient.thesign=true;
-	else quotient.thesign=false;
-
+	quotient.thesign = a.thesign==b.thesign;
 	return quotient;
 }
 
