@@ -195,25 +195,25 @@ inf_int operator/(const inf_int& a, const inf_int& b)
 	assert(divisor!=zero); //0으로 나누는 경우 에러
 	
 	if (a==zero) return zero; // 0을 나누는 경우 0을 반환
-	if (inf_int(a.digits) < inf_int(b.digits)) return zero; // 나누는값이 더 클 경우 몫은 0이므로 몫 반환
-	
+	if (inf_int(a.digits) < inf_int(b.digits)) return zero; // 절댓값 비교시, 나누는값이 더 클 경우 몫은 0이므로 몫 반환
+
 	reminder.digits = "";
 	for (int i = a.digits.length()-1; i>=0; i--)
 	{
 		reminder.digits.insert(reminder.digits.begin(), a.digits.at(i)); // 나머지에 추가
-		if (reminder<divisor)
+		if (reminder<divisor) // 나누는 값이 나눠질 값보다 크면, 몫을 0으로 설정
 		{
 			quotient.digits.insert(quotient.digits.begin(), '0');
 		}
 		else
 		{
-			int q = 0;
+			int q = 0; // reminder/divisor시 몫 구하기
 			while (reminder > divisor || reminder==divisor)
 			{
 				reminder = reminder-divisor;
 				q++;
 			}
-			quotient.digits.insert(quotient.digits.begin(), q+'0');
+			quotient.digits.insert(quotient.digits.begin(), q+'0'); // 몫 결과값에 몫 추가하기
 		}
 	}
 
