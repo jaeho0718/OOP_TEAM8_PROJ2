@@ -30,7 +30,7 @@ inf_int::inf_int(int n): digits(""), thesign(n>=0) {
 
 inf_int::inf_int(const string str)
 {	
-	int start_index = 1; // 숫자 시작 인덱스
+	unsigned int start_index = 1; // 숫자 시작 인덱스
 
 	// 부호 판별, 만약 첫번째 인덱스가 부호이거나 숫자가 아니면 에러를 발생시킵니다.
 	if (str.at(0)=='+') thesign=true;
@@ -41,6 +41,13 @@ inf_int::inf_int(const string str)
 		thesign=true;
 	}
 	else assert(true);
+
+	// 0으로 문자열이 시작하는 경우 첫번째로 0이 아닌 값이 나오는 인덱스를 계산합니다.
+	size_t non_zero_start_pos = str.find_first_not_of('0', start_index);
+	if (non_zero_start_pos != string::npos)
+		start_index = non_zero_start_pos;
+	else
+		start_index = str.length()-1;
 
 	digits = "";
 	for (int i = str.length()-1; i>=start_index; i--) //역순으로 저장
