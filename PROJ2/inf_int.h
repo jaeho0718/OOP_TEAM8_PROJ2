@@ -2,25 +2,26 @@
 #define _INF_INT_H_
 
 #include <iostream>
+#include <string>
 
 using namespace std;
 
 class inf_int
 {
 private:
-    char* digits;  // You may modify this to "string digits;" if you want.
-    unsigned int length;
+    // 숫자를 역순으로 바꿔 저장합니다. 12345 -> 54321
+    string digits;
     bool thesign;   // true if positive , false if negative.
     // ex) 15311111111111111 -> digits="11111111111111351", length=17, thesign=true;
     // ex) -12345555555555 -> digits="55555555554321", length=14, thesign=false
     // You may modify or add private members of inf_int class. So, it is OK to insert Add() private member function in inf_int class. However, You may not modify public members of inf_int class.
 
 public:
-    inf_int();               // assign 0 as a default value 재호형
-    inf_int(int);            // 재호형
-    inf_int(const char*);   // you may modify this to "inf_int(const string);" 재호형
-    inf_int(const inf_int&); // copy constructor 재호형
-    ~inf_int(); // destructor // 재호형
+    inf_int(); // assign 0 as a default value
+    inf_int(int);
+    inf_int(const string);
+    inf_int(const inf_int&);
+    ~inf_int(); // destructor
 
     inf_int& operator=(const inf_int&); // assignment operator
 
