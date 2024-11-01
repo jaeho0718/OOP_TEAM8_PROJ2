@@ -2,6 +2,7 @@
 #include "inf_int.h"
 #include <cassert>
 #include <cctype>
+#include <deque>
 /*
 Originally written by
 ��ǻ�Ͱ��к�
@@ -47,7 +48,7 @@ inf_int::inf_int(const string str)
 	if (non_zero_start_pos != string::npos)
 		start_index = non_zero_start_pos;
 	else
-		start_index = str.length()-1;
+		start_index = str.length()-1; //문자열이 모두 0일 때
 
 	digits = "";
 	for (int i = str.length()-1; i>=start_index; i--) //역순으로 저장
@@ -127,64 +128,89 @@ inf_int operator+(const inf_int& a, const inf_int& b)
 
 inf_int operator-(const inf_int& a, const inf_int& b)
 {
-	bool has_same_sign = a.thesign == b.thesign;
+    inf_int result;
+    if (a < b)
+    {
+        result = b.karatsuba_subtract(a);
+        result.thesign = false;
+    }
+    else
+    {
+        result = a.karatsuba_subtract(b);
+        result.thesign = true;
+    }
+    return result;
+}
 
-	//연산을 위한 부호없는 값 생성
-	inf_int subtrahend = b.digits; // 빼질 값
-	inf_int minuend = a.digits; // 뺄 값
-	bool thesign = false;
-	string digits;
+inf_int inf_int::karatsuba_subtract(const inf_int& other) const
+{
+    if (digits.length() <= 1 || other.digits.length() <= 1) return simple_subtract(other);
 
-	if (has_same_sign)
-	{
-		// (+)-(+) or (-)-(-)인 경우 계산
+    int max_len = std::max(digits.length(), other.digits.length());
+    std::string subtrahend_digits = this->digits; // 빼질 값
+    subtrahend_digits.insert(0, max_len - subtrahend_digits.length(), '0'); // 자릿수 맞추기
+    std::string minuend_digits = other.digits; // 뺄 값
+    minuend_digits.insert(0, max_len - minuend_digits.length(), '0'); // 자릿수 맞추기
 
-		if (subtrahend==minuend) return inf_int(0); // 절댓값이 같을 경우 결과가 0
-		
-		thesign = a.thesign;
+    int split_pos = max_len / 2;
+    inf_int s_left(subtrahend_digits.substr(0, split_pos));
+    inf_int s_right(subtrahend_digits.substr(split_pos));
+    inf_int m_left(minuend_digits.substr(0, split_pos));
+    inf_int m_right(minuend_digits.substr(split_pos));
 
-		// 뺄값이 뺴는값 보다 클때, minuend와 subtrahend 바꿈
-		if (subtrahend<minuend)
-		{
-			thesign = !a.thesign;
-			subtrahend = a.digits;
-			minuend = b.digits;
-		}
+    inf_int left_result = s_left.karatsuba_subtract(m_left);
+    inf_int right_result = s_right.karatsuba_subtract(m_right);
 
-		bool carry = false;
-		int s_length = subtrahend.digits.length();
-		int m_length = minuend.digits.length();
-		int s_digit, m_digit, temp;
-		for (int i = 0; i < s_length; i++)
-		{
-			s_digit = subtrahend.digits.at(i)-'0';
-			if (carry) s_digit -= 1;
+    if (!right_result.thesign) // carry 발생시
+    {
+        left_result = left_result.karatsuba_subtract(inf_int(1));
+        right_result.thesign = true;
+    }
 
-			if (i < m_length)
-			{
-				m_digit = minuend.digits.at(i)-'0';
-				temp = s_digit-m_digit;
-			}
-			else temp = s_digit;
+    inf_int result;
+    result.digits = left_result.digits + std::string(max_len - split_pos, '0') + right_result.digits;
+    return result;
+}
 
-			carry = temp < 0;
-			if (carry)
-				temp += 10;
+inf_int inf_int::simple_subtract(const inf_int& other) const
+{
+    inf_int subtrahend = digits; // 빼질 값
+    inf_int minuend = other.digits; // 뺄 값
 
-			digits.push_back(temp+'0');
-		}
-	}
-	else
-	{
-		// 다른 부호를 가졋을때는, 절댓값을 더한뒤 부호를 생성합니다.
-		digits = (subtrahend+minuend).digits;
-		if (b.thesign) thesign=false; // (-)-(+)인 경우
-		else thesign=true; // (+)-(-)인 경우
-	}
-	
-	inf_int result = digits;
-	result.thesign = thesign;
-	return result;
+    if (subtrahend < minuend) // 작은값 - 큰값
+    {
+        inf_int result = minuend.simple_subtract(subtrahend);
+        result.thesign = false;
+        return result;
+    }
+
+    int s_digit, m_digit, temp;
+    std::string digits;
+    bool is_carry = false; // carry 초기화
+    for (size_t i = 0; i < subtrahend.digits.length(); i++)
+    {
+        s_digit = subtrahend.digits.at(i) - '0';
+        m_digit = (i < minuend.digits.length() ? minuend.digits.at(i) - '0' : 0);
+
+        if (is_carry) s_digit -= 1;
+
+        temp = s_digit - m_digit;
+        is_carry = temp < 0;
+        if (is_carry)
+        {
+            temp += 10;
+        }
+
+        digits.push_back(temp + '0');
+    }
+
+    // 결과 앞의 불필요한 0 제거
+    while (digits.length() > 1 && digits.back() == '0') {
+        digits.pop_back();
+    }
+
+    std::reverse(digits.begin(), digits.end());
+    return inf_int(digits);
 }
 
 inf_int operator*(const inf_int& a, const inf_int& b)
@@ -195,7 +221,6 @@ inf_int operator*(const inf_int& a, const inf_int& b)
 inf_int operator/(const inf_int& a, const inf_int& b)
 {
 	const inf_int zero;
-	inf_int quotient;
 	inf_int reminder;
 	inf_int divisor = b.digits;
 
@@ -205,12 +230,13 @@ inf_int operator/(const inf_int& a, const inf_int& b)
 	if (inf_int(a.digits) < inf_int(b.digits)) return zero; // 절댓값 비교시, 나누는값이 더 클 경우 몫은 0이므로 몫 반환
 
 	reminder.digits = "";
+	string quotient_digits;
 	for (int i = a.digits.length()-1; i>=0; i--)
 	{
 		reminder.digits.insert(reminder.digits.begin(), a.digits.at(i)); // 나머지에 추가
 		if (reminder<divisor) // 나누는 값이 나눠질 값보다 크면, 몫을 0으로 설정
 		{
-			quotient.digits.insert(quotient.digits.begin(), '0');
+			quotient_digits.push_back('0');
 		}
 		else
 		{
@@ -220,10 +246,11 @@ inf_int operator/(const inf_int& a, const inf_int& b)
 				reminder = reminder-divisor;
 				q++;
 			}
-			quotient.digits.insert(quotient.digits.begin(), q+'0'); // 몫 결과값에 몫 추가하기
+			quotient_digits.push_back(q+'0'); // 몫 결과값에 몫 추가하기
 		}
 	}
 
+	inf_int quotient = quotient_digits;
 	quotient.thesign = a.thesign==b.thesign;
 	return quotient;
 }
